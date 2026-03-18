@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrackIt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg:           #ffffff;
+      --bg-soft:      #f7f6f3;
+      --surface:      #f1f1ef;
+      --surface2:     #ebebea;
+      --border:       rgba(55,53,47,0.09);
+      --border-2:     rgba(55,53,47,0.16);
+      --text:         rgba(25,23,17,0.95);
+      --text2:        rgba(55,53,47,0.60);
+      --text3:        rgba(55,53,47,0.35);
+      --accent:       #2383e2;
+      --accent-soft:  rgba(35,131,226,0.08);
+      --accent-fg:    #ffffff;
+      --danger:       #eb5757;
+      --danger-bg:    rgba(235,87,87,0.08);
+      --success:      #0f7b56;
+      --success-bg:   rgba(15,123,86,0.07);
+      --row-hover:    rgba(55,53,47,0.04);
+      --sidebar-w:    240px;
+    }
+    [data-theme="dark"] {
+      --bg:#191919; --bg-soft:#1e1e1e; --surface:#252525; --surface2:#2e2e2e;
+      --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.13);
+      --text:rgba(255,255,255,0.87); --text2:rgba(255,255,255,0.45); --text3:rgba(255,255,255,0.22);
+      --accent:#4d9de0; --accent-soft:rgba(77,157,224,0.10); --accent-fg:#fff;
+      --danger:#ff6b6b; --danger-bg:rgba(255,107,107,0.10);
+      --success:#4ade80; --success-bg:rgba(74,222,128,0.08);
+      --row-hover:rgba(255,255,255,0.03);
+    }
+    [data-theme="slate"] {
+      --bg:#0f1117; --bg-soft:#14192a; --surface:#1c2235; --surface2:#232c44;
+      --border:rgba(100,130,230,0.10); --border-2:rgba(100,130,230,0.20);
+      --text:rgba(218,228,255,0.90); --text2:rgba(180,200,255,0.52); --text3:rgba(180,200,255,0.28);
+      --accent:#5a9cf8; --accent-soft:rgba(90,156,248,0.10); --accent-fg:#fff;
+      --danger:#f87171; --danger-bg:rgba(248,113,113,0.10);
+      --success:#4ade80; --success-bg:rgba(74,222,128,0.08);
+      --row-hover:rgba(100,130,230,0.04);
+    }
+    [data-theme="forest"] {
+      --bg:#0d1410; --bg-soft:#121a14; --surface:#182119; --surface2:#1e2b1f;
+      --border:rgba(80,190,110,0.09); --border-2:rgba(80,190,110,0.18);
+      --text:rgba(212,240,220,0.90); --text2:rgba(160,220,175,0.55); --text3:rgba(160,220,175,0.28);
+      --accent:#22c55e; --accent-soft:rgba(34,197,94,0.10); --accent-fg:#0d1410;
+      --danger:#f87171; --danger-bg:rgba(248,113,113,0.10);
+      --success:#22c55e; --success-bg:rgba(34,197,94,0.08);
+      --row-hover:rgba(34,197,94,0.04);
+    }
+    [data-theme="sand"] {
+      --bg:#13100b; --bg-soft:#1a1610; --surface:#231e16; --surface2:#2c261c;
+      --border:rgba(210,180,110,0.09); --border-2:rgba(210,180,110,0.18);
+      --text:rgba(245,234,208,0.90); --text2:rgba(220,195,145,0.55); --text3:rgba(220,195,145,0.28);
+      --accent:#f59e0b; --accent-soft:rgba(245,158,11,0.10); --accent-fg:#13100b;
+      --danger:#f87171; --danger-bg:rgba(248,113,113,0.10);
+      --success:#4ade80; --success-bg:rgba(74,222,128,0.08);
+      --row-hover:rgba(245,158,11,0.04);
+    }
+
+    /* ── BASE ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 5px; }
+
+    /* ── LAYOUT ── */
+    .app-shell { display: flex; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      background: var(--bg-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 16px;
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 8px 16px;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .nav { display: flex; flex-direction: column; gap: 2px; margin-bottom: 24px; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      color: var(--text2);
+      transition: all 120ms;
+      text-align: left;
+      width: 100%;
+    }
+    .nav-btn:hover { background: var(--row-hover); color: var(--text); }
+    .nav-btn.active { background: var(--accent-soft); color: var(--accent); }
+    .nav-btn svg { opacity: 0.6; flex-shrink: 0; width: 16px; height: 16px; }
+    .nav-btn.active svg { opacity: 1; }
+
+    .sidebar-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      padding: 0 8px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .projects-section { margin-top: auto; }
+    .project-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 13px;
+      color: var(--text2);
+      transition: all 120ms;
+    }
+    .project-row:hover { background: var(--row-hover); color: var(--text); }
+    .project-row .remove-btn { opacity: 0; transition: opacity 120ms; margin-left: auto; }
+    .project-row:hover .remove-btn { opacity: 1; }
+
+    .theme-section { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .theme-swatches { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 2px; }
+    .theme-swatch {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      cursor: pointer;
+      transition: all 150ms;
+    }
+    .theme-swatch:hover { transform: scale(1.15); }
+    .theme-swatch.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      flex: 1;
+      margin-left: var(--sidebar-w);
+      max-width: 780px;
+      padding: 32px 40px;
+    }
+
+    /* ── TABS ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    /* ── TIMER DISPLAY ── */
+    .timer-display {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .timer-clock {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 64px;
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      color: var(--text);
+      line-height: 1;
+    }
+    .timer-status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+      height: 20px;
+      font-size: 12px;
+    }
+
+    /* ── INPUT ROW ── */
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .input-notion {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 150ms, box-shadow 150ms;
+      outline: none;
+      width: 100%;
+    }
+    .input-notion::placeholder { color: var(--text3); }
+    .input-notion:hover { border-color: var(--border-2); }
+    .input-notion:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    .select-notion {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 28px 8px 10px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color 150ms;
+      min-width: 150px;
+      flex-shrink: 0;
+    }
+    .select-notion:hover { border-color: var(--border-2); }
+    .select-notion:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 120ms ease;
+      border: none;
+      white-space: nowrap;
+    }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .btn-ghost { background: transparent; color: var(--text2); }
+    .btn-ghost:hover { background: var(--row-hover); color: var(--text); }
+    .btn-soft { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .btn-soft:hover { background: var(--surface2); border-color: var(--border-2); }
+    .btn-accent { background: var(--accent); color: var(--accent-fg); }
+    .btn-accent:hover { filter: brightness(1.08); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { filter: brightness(1.08); }
+    .btn-danger-ghost { background: transparent; color: var(--text3); padding: 4px 6px; }
+    .btn-danger-ghost:hover { background: var(--danger-bg); color: var(--danger); }
+    .btn-danger-stop { background: var(--danger-bg); color: var(--danger); }
+    .btn-danger-stop:hover { filter: brightness(1.08); }
+    .btn-sm { padding: 4px 8px; font-size: 12px; }
+    .btn-xs { padding: 2px 6px; font-size: 11px; }
+    .hidden { display: none !important; }
+
+    /* ── TIMER CONTROLS ── */
+    .timer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .manual-toggle-row { text-align: center; margin-top: 20px; }
+
+    /* ── MANUAL ENTRY ── */
+    .manual-entry {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .manual-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+    .manual-row { display: flex; gap: 12px; margin-bottom: 12px; }
+    .manual-dates { display: flex; gap: 12px; margin-bottom: 12px; }
+    .date-group { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+    .date-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text3);
+    }
+    .manual-save-row { display: flex; justify-content: flex-end; }
+
+    /* ── TODAY SECTION ── */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .section-title { font-size: 18px; font-weight: 700; }
+    .section-meta { font-size: 13px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── ENTRY ROW ── */
+    .entry-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      transition: background 120ms;
+    }
+    .entry-row:hover { background: var(--row-hover); }
+    .entry-row .delete-btn { opacity: 0; transition: opacity 120ms; }
+    .entry-row:hover .delete-btn { opacity: 1; }
+    .entry-bar { width: 3px; height: 32px; border-radius: 2px; flex-shrink: 0; }
+    .entry-info { flex: 1; min-width: 0; }
+    .entry-task { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .entry-project { font-size: 12px; color: var(--text3); }
+    .entry-time { text-align: right; flex-shrink: 0; }
+    .entry-duration { font-size: 14px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .entry-range { font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+    /* ── HISTORY TAB ── */
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .filter-sep { color: var(--text3); }
+    .history-day { margin-bottom: 24px; }
+    .history-day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .history-day-name { font-size: 13px; font-weight: 600; color: var(--text2); }
+    .history-day-total { font-size: 12px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text3); }
+
+    /* ── STATS TAB ── */
+    .period-btns { display: flex; gap: 4px; margin-bottom: 24px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-top: 4px; }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .chart-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text3);
+      margin-bottom: 16px;
+    }
+    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 140px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 4px; }
+    .bar-val { font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--text3); }
+    .bar { border-radius: 4px 4px 0 0; width: 100%; min-height: 2px; transition: height 300ms ease; }
+    .bar-day { font-size: 10px; color: var(--text3); }
+    .bar-day.today { color: var(--accent); font-weight: 700; }
+
+    .breakdown-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .breakdown-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .breakdown-row:last-child { margin-bottom: 0; }
+    .breakdown-track { height: 6px; border-radius: 3px; background: var(--surface2); overflow: hidden; flex: 1; }
+    .breakdown-fill { height: 100%; border-radius: 3px; transition: width 300ms ease; }
+    .breakdown-name { font-size: 13px; min-width: 80px; }
+    .breakdown-time { font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; min-width: 50px; text-align: right; flex-shrink: 0; }
+
+    /* ── DOT ── */
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
+    .dot-lg { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ── EMPTY STATE ── */
+    .empty { text-align: center; padding: 40px 0; color: var(--text3); font-size: 14px; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fade-up { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fade-in { from{opacity:0} to{opacity:1} }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .anim-fade-up { animation: fade-up 200ms ease both; }
+    .pulse-running { animation: pulse-dot 1.2s ease-in-out infinite; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; padding: 12px; }
+      .main { margin-left: 0; padding: 16px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="logo">⏱ TrackIt</div>
+
+    <nav class="nav" id="nav">
+      <button class="nav-btn active" data-tab="timer">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Таймер
+      </button>
+      <button class="nav-btn" data-tab="history">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        История
+      </button>
+      <button class="nav-btn" data-tab="stats">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Статистика
+      </button>
+    </nav>
+
+    <div class="projects-section">
+      <div class="sidebar-section-label">
+        Проекты
+        <button class="btn btn-ghost btn-xs" id="btnAddProject" title="Добавить проект">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div id="projectsList"></div>
+    </div>
+
+    <div class="theme-section">
+      <div class="sidebar-section-label" style="margin-bottom:8px;">Тема</div>
+      <div class="theme-swatches" id="themeSwitcher">
+        <button class="theme-swatch" data-theme-value="light"  style="background:#ffffff;" title="Light"></button>
+        <button class="theme-swatch" data-theme-value="dark"   style="background:#191919;" title="Dark"></button>
+        <button class="theme-swatch" data-theme-value="slate"  style="background:#14192a;" title="Slate"></button>
+        <button class="theme-swatch" data-theme-value="forest" style="background:#121a14;" title="Forest"></button>
+        <button class="theme-swatch" data-theme-value="sand"   style="background:#1a1610;" title="Sand"></button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+
+    <!-- ── TIMER TAB ── -->
+    <section class="tab-content active" id="tabTimer">
+
+      <div class="card anim-fade-up">
+        <!-- Clock -->
+        <div class="timer-display">
+          <div class="timer-clock" id="timerDisplay">00:00:00</div>
+          <div class="timer-status" id="timerStatus"></div>
+        </div>
+
+        <!-- Input row -->
+        <div class="input-row">
+          <input type="text" id="taskInput" class="input-notion" placeholder="Над чем работаешь?" style="flex:1;" />
+          <select id="projectSelect" class="select-notion">
+            <option value="">Без проекта</option>
+          </select>
+        </div>
+
+        <!-- Controls -->
+        <div class="timer-controls">
+          <button class="btn btn-success" id="btnStart">
+            <svg fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Старт
+          </button>
+          <button class="btn btn-soft hidden" id="btnPause">
+            <svg fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            Пауза
+          </button>
+          <button class="btn btn-danger-stop hidden" id="btnStop">
+            <svg fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+            Стоп
+          </button>
+        </div>
+
+        <!-- Manual toggle -->
+        <div class="manual-toggle-row">
+          <button class="btn btn-ghost btn-sm" id="btnManualToggle" style="color:var(--text3);">
+            ✏️ Добавить вручную
+          </button>
+        </div>
+
+        <!-- Manual form -->
+        <div class="manual-entry hidden" id="manualEntry">
+          <div class="manual-label">Ручной ввод</div>
+          <div class="manual-row">
+            <input type="text" id="manualTask" class="input-notion" placeholder="Название задачи" style="flex:1;" />
+            <select id="manualProject" class="select-notion">
+              <option value="">Без проекта</option>
+            </select>
+          </div>
+          <div class="manual-dates">
+            <div class="date-group">
+              <div class="date-label">Начало</div>
+              <input type="datetime-local" id="manualStart" class="input-notion" />
+            </div>
+            <div class="date-group">
+              <div class="date-label">Конец</div>
+              <input type="datetime-local" id="manualEnd" class="input-notion" />
+            </div>
+          </div>
+          <div class="manual-save-row">
+            <button class="btn btn-accent" id="btnManualSave">💾 Сохранить</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today -->
+      <div>
+        <div class="section-header">
+          <h2 class="section-title">Сегодня</h2>
+          <span class="section-meta" id="todayTotal">0ч 0м</span>
+        </div>
+        <div id="todayEntries"></div>
+      </div>
+    </section>
+
+    <!-- ── HISTORY TAB ── -->
+    <section class="tab-content" id="tabHistory">
+      <div class="section-header">
+        <h2 class="section-title">История</h2>
+      </div>
+      <div class="filter-row">
+        <input type="date" id="filterFrom" class="input-notion" style="width:auto;" />
+        <span class="filter-sep">—</span>
+        <input type="date" id="filterTo" class="input-notion" style="width:auto;" />
+        <select id="filterProject" class="select-notion" style="min-width:130px;">
+          <option value="">Все проекты</option>
+        </select>
+        <button class="btn btn-accent btn-sm" id="btnFilter">Показать</button>
+        <button class="btn btn-soft btn-sm" id="btnExport" style="margin-left:auto;">📥 CSV</button>
+      </div>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- ── STATS TAB ── -->
+    <section class="tab-content" id="tabStats">
+      <div class="section-header">
+        <h2 class="section-title">Статистика</h2>
+      </div>
+
+      <div class="period-btns" id="statsPeriodBtns">
+        <button class="btn btn-soft btn-sm active" data-period="week" style="background:var(--accent);color:var(--accent-fg);">Неделя</button>
+        <button class="btn btn-soft btn-sm" data-period="month">Месяц</button>
+        <button class="btn btn-soft btn-sm" data-period="all">Всё время</button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statTotal">0ч</div>
+          <div class="stat-label">Всего</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statAvg">0ч</div>
+          <div class="stat-label">В среднем / день</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statEntries">0</div>
+          <div class="stat-label">Записей</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statTopProject" style="font-size:14px;">—</div>
+          <div class="stat-label">Топ проект</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-label">По дням</div>
+        <div class="bar-chart" id="barChart"></div>
+      </div>
+
+      <div class="breakdown-card">
+        <div class="chart-label">По проектам</div>
+        <div id="projectBreakdown"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+const COLORS = [
+  '#2383e2','#0f7b56','#eb5757','#f59e0b',
+  '#8b5cf6','#ec4899','#06b6d4','#84cc16',
+  '#f97316','#6366f1','#14b8a6','#e11d48'
+];
+
+const Store = {
+  _get(k,fb){try{return JSON.parse(localStorage.getItem('ti_'+k))||fb;}catch{return fb;}},
+  _set(k,v){localStorage.setItem('ti_'+k,JSON.stringify(v));},
+  entries(){return this._get('entries',[]);},
+  saveEntries(e){this._set('entries',e);},
+  addEntry(e){const all=this.entries();all.unshift(e);this.saveEntries(all);},
+  deleteEntry(id){this.saveEntries(this.entries().filter(e=>e.id!==id));},
+  projects(){return this._get('projects',[
+    {id:'p1',name:'Работа',color:COLORS[0]},
+    {id:'p2',name:'Учёба',color:COLORS[1]},
+    {id:'p3',name:'Личное',color:COLORS[2]},
+  ]);},
+  saveProjects(p){this._set('projects',p);},
+  addProject(name){
+    const p=this.projects();
+    const proj={id:'p'+Date.now(),name,color:COLORS[p.length%COLORS.length]};
+    p.push(proj);this.saveProjects(p);return proj;
+  },
+  deleteProject(id){this.saveProjects(this.projects().filter(p=>p.id!==id));},
+  theme(){return this._get('theme',null);},
+  saveTheme(t){this._set('theme',t);},
+};
+
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+const genId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+function fmtDuration(sec){
+  const h=String(Math.floor(sec/3600)).padStart(2,'0');
+  const m=String(Math.floor((sec%3600)/60)).padStart(2,'0');
+  const s=String(sec%60).padStart(2,'0');
+  return `${h}:${m}:${s}`;
+}
+function fmtHM(sec){
+  const h=Math.floor(sec/3600);
+  const m=Math.floor((sec%3600)/60);
+  return h?`${h}ч ${m}м`:`${m}м`;
+}
+function fmtTime(d){return new Date(d).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});}
+function fmtDate(d){return new Date(d).toLocaleDateString('ru-RU',{weekday:'short',day:'numeric',month:'long'});}
+function fmtISO(d){return new Date(d).toISOString().split('T')[0];}
+function isToday(d){return fmtISO(d)===fmtISO(new Date());}
+function projectById(id){return Store.projects().find(p=>p.id===id);}
+
+class Timer{
+  constructor(onTick){this.sec=0;this.running=false;this.paused=false;this._iv=null;this.startTime=null;this.onTick=onTick;}
+  start(){
+    if(this.running&&!this.paused)return;
+    if(!this.startTime)this.startTime=new Date();
+    this.running=true;this.paused=false;
+    this._iv=setInterval(()=>{this.sec++;this.onTick(this.sec);},1000);
+  }
+  pause(){if(!this.running||this.paused)return;this.paused=true;clearInterval(this._iv);}
+  resume(){if(this.paused)this.start();}
+  stop(){
+    clearInterval(this._iv);
+    const r={seconds:this.sec,startTime:this.startTime,endTime:new Date()};
+    this.sec=0;this.running=false;this.paused=false;this.startTime=null;this.onTick(0);
+    return r;
+  }
+}
+
+class App{
+  constructor(){
+    this.timer=new Timer(s=>this.onTick(s));
+    this.tab='timer';
+    this.statsPeriod='week';
+    this.initTheme();
+    this.bind();
+    this.renderProjects();
+    this.renderToday();
+    this.setDefaultDates();
+  }
+
+  initTheme(){
+    const saved=Store.theme();
+    if(saved)document.documentElement.setAttribute('data-theme',saved);
+    this.updateThemeSwatches();
+    $$('#themeSwitcher .theme-swatch').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const t=btn.dataset.themeValue;
+        document.documentElement.setAttribute('data-theme',t);
+        Store.saveTheme(t);
+        this.updateThemeSwatches();
+      });
+    });
+  }
+
+  updateThemeSwatches(){
+    const current=document.documentElement.getAttribute('data-theme')||Store.theme()||'light';
+    $$('#themeSwitcher .theme-swatch').forEach(btn=>{
+      btn.classList.toggle('active',btn.dataset.themeValue===current);
+    });
+  }
+
+  bind(){
+    $$('.nav-btn').forEach(b=>b.addEventListener('click',()=>this.switchTab(b.dataset.tab)));
+    $('#btnStart').addEventListener('click',()=>this.startTimer());
+    $('#btnPause').addEventListener('click',()=>this.pauseTimer());
+    $('#btnStop').addEventListener('click',()=>this.stopTimer());
+    $('#btnManualToggle').addEventListener('click',()=>$('#manualEntry').classList.toggle('hidden'));
+    $('#btnManualSave').addEventListener('click',()=>this.saveManual());
+    $('#btnAddProject').addEventListener('click',()=>this.addProject());
+    $('#btnFilter').addEventListener('click',()=>this.renderHistory());
+    $('#btnExport').addEventListener('click',()=>this.exportCSV());
+    $$('#statsPeriodBtns button').forEach(b=>{
+      b.addEventListener('click',()=>{
+        $$('#statsPeriodBtns button').forEach(x=>{x.classList.remove('active');x.style.background='';x.style.color='';});
+        b.classList.add('active');b.style.background='var(--accent)';b.style.color='var(--accent-fg)';
+        this.statsPeriod=b.dataset.period;this.renderStats();
+      });
+    });
+    document.addEventListener('keydown',e=>{
+      if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+      if(e.code==='Space'){e.preventDefault();this.timer.running&&!this.timer.paused?this.pauseTimer():this.startTimer();}
+      if(e.code==='Escape'&&this.timer.running)this.stopTimer();
+    });
+  }
+
+  switchTab(tab){
+    this.tab=tab;
+    $$('.nav-btn').forEach(b=>{
+      const a=b.dataset.tab===tab;
+      b.classList.toggle('active',a);
+      b.style.background=a?'var(--accent-soft)':'';
+      b.style.color=a?'var(--accent)':'';
+    });
+    $$('.tab-content').forEach(t=>{t.classList.remove('active');t.style.display='none';});
+    const tabEl=$(`#tab${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
+    if(tabEl){tabEl.style.display='block';tabEl.classList.add('active');}
+    if(tab==='timer')this.renderToday();
+    if(tab==='history')this.renderHistory();
+    if(tab==='stats')this.renderStats();
+  }
+
+  onTick(sec){
+    $('#timerDisplay').textContent=fmtDuration(sec);
+    document.title=this.timer.running?`${fmtDuration(sec)} — TrackIt`:'TrackIt';
+  }
+
+  startTimer(){
+    if(this.timer.paused)this.timer.resume();else this.timer.start();
+    $('#btnStart').classList.add('hidden');
+    $('#btnPause').classList.remove('hidden');
+    $('#btnStop').classList.remove('hidden');
+    $('#timerStatus').innerHTML=`<span class="dot pulse-running" style="background:var(--success);"></span><span style="font-size:12px;color:var(--success);margin-left:4px;">Запись...</span>`;
+  }
+
+  pauseTimer(){
+    this.timer.pause();
+    $('#btnPause').classList.add('hidden');
+    $('#btnStart').classList.remove('hidden');
+    $('#btnStart').innerHTML=`<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Продолжить`;
+    $('#timerStatus').innerHTML=`<span class="dot" style="background:var(--text3);"></span><span style="font-size:12px;color:var(--text3);margin-left:4px;">Пауза</span>`;
+  }
+
+  stopTimer(){
+    const r=this.timer.stop();
+    if(r.seconds<1)return;
+    Store.addEntry({id:genId(),task:$('#taskInput').value.trim()||'Без названия',projectId:$('#projectSelect').value,startTime:r.startTime.toISOString(),endTime:r.endTime.toISOString(),duration:r.seconds});
+    $('#taskInput').value='';
+    $('#btnStart').classList.remove('hidden');
+    $('#btnStart').innerHTML=`<svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg> Старт`;
+    $('#btnPause').classList.add('hidden');
+    $('#btnStop').classList.add('hidden');
+    $('#timerStatus').innerHTML='';
+    document.title='TrackIt';
+    this.renderToday();
+  }
+
+  saveManual(){
+    const start=new Date($('#manualStart').value);
+    const end=new Date($('#manualEnd').value);
+    if(isNaN(start)||isNaN(end)||end<=start){alert('Проверь даты');return;}
+    Store.addEntry({id:genId(),task:$('#manualTask').value.trim()||'Без названия',projectId:$('#manualProject').value,startTime:start.toISOString(),endTime:end.toISOString(),duration:Math.floor((end-start)/1000)});
+    $('#manualEntry').classList.add('hidden');
+    $('#manualTask').value='';$('#manualStart').value='';$('#manualEnd').value='';
+    this.renderToday();
+  }
+
+  renderProjects(){
+    const projects=Store.projects();
+    $('#projectsList').innerHTML=projects.map(p=>`
+      <div class="project-row">
+        <span class="dot" style="background:${p.color};"></span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</span>
+        <button class="btn btn-danger-ghost btn-xs remove-btn" data-id="${p.id}">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`).join('');
+    $$('#projectsList .remove-btn').forEach(b=>{
+      b.addEventListener('click',()=>{Store.deleteProject(b.dataset.id);this.renderProjects();this.renderToday();});
+    });
+    const opts=`<option value="">Без проекта</option>`+projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+    $('#projectSelect').innerHTML=opts;
+    $('#manualProject').innerHTML=opts;
+    $('#filterProject').innerHTML=`<option value="">Все проекты</option>`+projects.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  }
+
+  addProject(){
+    const name=prompt('Название проекта:');
+    if(!name?.trim())return;
+    Store.addProject(name.trim());
+    this.renderProjects();
+  }
+
+  renderToday(){
+    const entries=Store.entries().filter(e=>isToday(e.startTime));
+    const total=entries.reduce((s,e)=>s+e.duration,0);
+    $('#todayTotal').textContent=fmtHM(total);
+    if(!entries.length){$('#todayEntries').innerHTML=`<div class="empty">Пока ничего. Запусти таймер! 🚀</div>`;return;}
+    $('#todayEntries').innerHTML=entries.map((e,i)=>this.entryHTML(e,i)).join('');
+    this.bindDeleteBtns('#todayEntries');
+  }
+
+  entryHTML(e,i){
+    const p=projectById(e.projectId);
+    const color=p?.color||'var(--text3)';
+    const pName=p?.name||'';
+    return `<div class="entry-row anim-fade-up" style="animation-delay:${i*30}ms;">
+      <div class="entry-bar" style="background:${color};"></div>
+      <div class="entry-info">
+        <div class="entry-task">${e.task}</div>
+        <div class="entry-project">${pName}</div>
+      </div>
+      <div class="entry-time">
+        <div class="entry-duration">${fmtHM(e.duration)}</div>
+        <div class="entry-range">${fmtTime(e.startTime)} – ${fmtTime(e.endTime)}</div>
+      </div>
+      <button class="btn btn-danger-ghost delete-btn" data-id="${e.id}" style="padding:6px;">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+      </button>
+    </div>`;
+  }
+
+  bindDeleteBtns(sel){
+    $$(sel+' .delete-btn').forEach(b=>{
+      b.addEventListener('click',()=>{
+        Store.deleteEntry(b.dataset.id);
+        this.renderToday();
+        if(this.tab==='history')this.renderHistory();
+        if(this.tab==='stats')this.renderStats();
+      });
+    });
+  }
+
+  setDefaultDates(){
+    const now=new Date();
+    const week=new Date(now);week.setDate(week.getDate()-7);
+    $('#filterFrom').value=fmtISO(week);
+    $('#filterTo').value=fmtISO(now);
+  }
+
+  renderHistory(){
+    const from=$('#filterFrom').value;
+    const to=$('#filterTo').value;
+    const pf=$('#filterProject').value;
+    let entries=Store.entries();
+    if(from)entries=entries.filter(e=>fmtISO(e.startTime)>=from);
+    if(to)entries=entries.filter(e=>fmtISO(e.startTime)<=to);
+    if(pf)entries=entries.filter(e=>e.projectId===pf);
+    const groups={};
+    entries.forEach(e=>{const d=fmtISO(e.startTime);(groups[d]=groups[d]||[]).push(e);});
+    const days=Object.keys(groups).sort().reverse();
+    if(!days.length){$('#historyList').innerHTML=`<div class="empty">Нет записей</div>`;return;}
+    $('#historyList').innerHTML=days.map(day=>{
+      const de=groups[day];
+      const tot=de.reduce((s,e)=>s+e.duration,0);
+      return `<div class="history-day anim-fade-up">
+        <div class="history-day-header">
+          <span class="history-day-name">${fmtDate(day)}</span>
+          <span class="history-day-total">${fmtHM(tot)}</span>
+        </div>
+        <div>${de.map((e,i)=>this.entryHTML(e,i)).join('')}</div>
+      </div>`;
+    }).join('');
+    this.bindDeleteBtns('#historyList');
+  }
+
+  exportCSV(){
+    const entries=Store.entries();
+    if(!entries.length){alert('Нет данных');return;}
+    const projects=Store.projects();
+    const pName=id=>projects.find(p=>p.id===id)?.name||'';
+    let csv='Задача,Проект,Начало,Конец,Минуты\n';
+    entries.forEach(e=>{csv+=`"${e.task}","${pName(e.projectId)}","${e.startTime}","${e.endTime}",${Math.round(e.duration/60)}\n`;});
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`trackit_${fmtISO(new Date())}.csv`;a.click();
+  }
+
+  renderStats(){
+    const all=Store.entries();
+    const now=new Date();
+    let filtered,daysN;
+    if(this.statsPeriod==='week'){const d=new Date(now);d.setDate(d.getDate()-7);filtered=all.filter(e=>new Date(e.startTime)>=d);daysN=7;}
+    else if(this.statsPeriod==='month'){const d=new Date(now);d.setDate(d.getDate()-30);filtered=all.filter(e=>new Date(e.startTime)>=d);daysN=30;}
+    else{filtered=all;daysN=all.length?Math.max(1,Math.ceil((now-new Date(all[all.length-1].startTime))/864e5)):1;}
+    const totalSec=filtered.reduce((s,e)=>s+e.duration,0);
+    const avgSec=Math.round(totalSec/daysN);
+    const pt={};
+    filtered.forEach(e=>{pt[e.projectId||'_']=(pt[e.projectId||'_']||0)+e.duration;});
+    let topName='—',topSec=0;
+    Object.entries(pt).forEach(([id,s])=>{if(s>topSec){topSec=s;const p=projectById(id);topName=p?p.name:'Без проекта';}});
+    $('#statTotal').textContent=fmtHM(totalSec);
+    $('#statAvg').textContent=fmtHM(avgSec);
+    $('#statEntries').textContent=filtered.length;
+    $('#statTopProject').textContent=topName;
+    this.renderChart(filtered,daysN);
+    this.renderBreakdown(filtered);
+  }
+
+  renderChart(entries,daysN){
+    const daily={};const now=new Date();const n=Math.min(daysN,14);
+    for(let i=n-1;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);daily[fmtISO(d)]=0;}
+    entries.forEach(e=>{const d=fmtISO(e.startTime);if(daily[d]!==undefined)daily[d]+=e.duration;});
+    const max=Math.max(...Object.values(daily),1);
+    const dayNames=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+    $('#barChart').innerHTML=Object.entries(daily).map(([date,sec])=>{
+      const pct=(sec/max)*100;
+      const dn=dayNames[new Date(date).getDay()];
+      const tod=date===fmtISO(new Date());
+      return `<div class="bar-col">
+        <span class="bar-val">${sec>0?fmtHM(sec):''}</span>
+        <div class="bar" style="height:${Math.max(pct,1)}%;background:${tod?'var(--accent)':'var(--border-2)'};${sec===0?'opacity:0.3':''}"></div>
+        <span class="bar-day${tod?' today':''}">${dn}</span>
+      </div>`;
+    }).join('');
+  }
+
+  renderBreakdown(entries){
+    const pt={};
+    entries.forEach(e=>{pt[e.projectId||'_']=(pt[e.projectId||'_']||0)+e.duration;});
+    const sorted=Object.entries(pt).sort((a,b)=>b[1]-a[1]);
+    const max=sorted[0]?.[1]||1;
+    if(!sorted.length){$('#projectBreakdown').innerHTML=`<div class="empty">Нет данных</div>`;return;}
+    $('#projectBreakdown').innerHTML=sorted.map(([id,sec])=>{
+      const p=projectById(id);
+      const name=p?.name||'Без проекта';const color=p?.color||'var(--text3)';
+      const pct=(sec/max)*100;
+      return `<div class="breakdown-row">
+        <span class="dot-lg dot" style="background:${color};"></span>
+        <span class="breakdown-name">${name}</span>
+        <div class="breakdown-track"><div class="breakdown-fill" style="width:${pct}%;background:${color};"></div></div>
+        <span class="breakdown-time">${fmtHM(sec)}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+document.addEventListener('DOMContentLoaded',()=>new App());
+</script>
+</body>
+</html>
